@@ -21,9 +21,9 @@ class DQN(nn.Module):
 
     def forward(self, state, dice_roll):
         # Połączenie stanu (state) z rzutem kostką (dice_roll) jako wejście do sieci.
-        print(f"State shape: {state.shape}, Dice roll shape: {dice_roll.shape}")
+        #print(f"State shape: {state.shape}, Dice roll shape: {dice_roll.shape}")
         x = T.cat((state, dice_roll), dim=1)
-        print(f"Combined input shape: {x.shape}")
+        #print(f"Combined input shape: {x.shape}")
         x = F.relu(self.fc1(x))  # Aktywacja ReLU na pierwszej warstwie ukrytej.
         x = F.relu(self.fc2(x))  # Aktywacja ReLU na drugiej warstwie ukrytej.
         x = self.fc3(x)  # Wyjście sieci (wartości Q dla każdej akcji).
@@ -320,13 +320,77 @@ def train_agent(env, agent, num_episodes, target_update=10):
 
     return scores
 
+
+def random_player_action(env):
+    """Gracz losowy wykonuje ruch."""
+    while True:
+        from_pos = random.randint(0, 23)  # Wybierz losową pozycję początkową.
+        dice_roll = env.roll_dice()  # Rzut kostkami.
+        for die in dice_roll:
+            to_pos = from_pos + die if env.turn == 'white' else from_pos - die
+            if env._is_valid_move(from_pos, to_pos, env.turn):
+                return (from_pos, dice_roll)  # Zwróć poprawny ruch.
+
+
+def train_with_random_opponent(env, agent, num_episodes):
+    """
+    Trening agenta przeciwko losowemu graczowi.
+
+    Args:
+        env: Obiekt środowiska (BackgammonEnv).
+        agent: Obiekt agenta (Agent).
+        num_episodes: Liczba epizodów do rozegrania.
+
+    Returns:
+        win_rate: Procent gier wygranych przez agenta.
+    """
+    agent_wins = 0
+
+    for episode in range(num_episodes):
+        state = env.reset()
+        done = False
+
+        while not done:
+            # Ruch agenta (sieć DQN)
+            if env.turn == 'white':
+                dice_roll = env.roll_dice()
+                action_idx, _ = agent.observation(state, dice_roll, player='white')
+                from_pos = action_idx  # Przyjmijmy, że action_idx to pozycja początkowa
+                action = (from_pos, dice_roll)
+
+                # Powtarzaj ruch, jeśli jest nieprawidłowy
+                #while True:
+                next_state, reward, done = env.step(action)
+                    #if reward != -1:
+                       # break  # Jeśli ruch był poprawny, przerwij
+
+            # Ruch gracza losowego
+            else:
+                action = random_player_action(env)
+                next_state, reward, done = env.step(action)
+
+            state = next_state
+
+        # Aktualizacja statystyk
+        if reward == 1:  # Wygrana białych (agenta)
+            agent_wins += 1
+
+        # Wypisz co 10 gier
+        if (episode + 1) % 10 == 0:
+            print(f"Episode {episode + 1}/{num_episodes}, Agent Wins: {agent_wins}")
+
+    win_rate = (agent_wins / num_episodes) * 100
+    print(f"Agent Win Rate: {win_rate:.2f}%")
+    return win_rate
+
+
 # Przykład uruchomienia treningu
 # Parametry treningu
 num_episodes = 10000
 
-gamma = 0.99
+gamma = 0.999
 epsilon = 1.0
-lr = 0.001
+lr = 0.0001
 input_size = 24  # Liczba cech wejściowych
 n_dice = 2  # Liczba kostek w Backgammonie
 batch_size = 24
@@ -338,6 +402,9 @@ agent = Agent(gamma, epsilon, lr, input_size + n_dice, batch_size, n_actions)
 
 # Trening agenta
 scores = train_agent(env, agent, num_episodes=num_episodes, target_update=50)
+
+# Trening przeciwko losowemu graczowi
+win_rate = train_with_random_opponent(env, agent, num_episodes=1000)
 
 # Wizualizacja wyników treningu
 import matplotlib.pyplot as plt
