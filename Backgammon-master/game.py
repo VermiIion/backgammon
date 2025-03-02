@@ -745,8 +745,8 @@ def random_player_action(env, die, agent):
     for from_pos in possible_fields:
         if env.move(from_pos, die, player):  # Użycie funkcji move
             return True  # Zwracamy pierwszy znaleziony poprawny ruch
-        else:
-            possible_fields.remove(from_pos)
+        #else:
+           # possible_fields.remove(from_pos)
 
     # Jeśli nie znaleziono żadnego poprawnego ruchu, pomijamy turę
     # print(f"Warning: No valid moves for player {player}. Skipping turn.")
