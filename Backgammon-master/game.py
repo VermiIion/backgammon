@@ -1152,15 +1152,15 @@ def test_against_different_opponents(env, trained_agent, num_episodes=100):
     for opponent_type, opponent in opponents.items():
         if opponent_type == 'random':
             win_rate = play_with_random_opponent(env, trained_agent, num_episodes,'white')
-            print(f"White start win rate vs {opponent_type}: {win_rate:.2f}%")
+            print(f"White side starts: Win rate vs {opponent_type}: {win_rate:.2f}%")
             win_rate = play_with_random_opponent(env, trained_agent, num_episodes,'black')
-            print(f"Black start win rate vs {opponent_type}: {win_rate:.2f}%")
+            print(f"Black side startsL Win rate vs {opponent_type}: {win_rate:.2f}%")
 
         else:  # if opponent_type == 'heuristic':
             win_rate = play_with_heuristic_opponent(env, trained_agent, num_episodes,'white')
-            print(f"White start win rate vs {opponent_type}: {win_rate:.2f}%")
+            print(f"White side starts: Win rate vs {opponent_type}: {win_rate:.2f}%")
             win_rate = play_with_heuristic_opponent(env, trained_agent, num_episodes, 'black')
-            print(f"Black start win rate vs {opponent_type}: {win_rate:.2f}%")
+            print(f"Black side starts: Win rate vs {opponent_type}: {win_rate:.2f}%")
 
         results[opponent_type] = win_rate
 
@@ -1829,9 +1829,9 @@ print("Starting pre-training for black agent...")
 # train_movement(env, agent_black, num_episodes=1000)
 # Gra na wstępnie nauczonych sieciach
 # print("Playing with pre-trained agent...")
-print("white")
+print("agent trained on white side")
 test_against_different_opponents(env, agent_white, num_episodes=1000)
-print("black")
+print("agent trained on black side")
 test_against_different_opponents(env, agent_black, num_episodes=1000)
 # print("After Playing with pre-trained agents...")
 scores = train_agent(env, agent_white, agent_black, num_episodes=num_episodes)
